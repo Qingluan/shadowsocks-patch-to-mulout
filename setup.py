@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='x-mroy-1050',
-    version='0.0.7',
+    version='0.0.8',
     description=' x-mroy',
     url='https://github.com/Qingluan/.git',
     author='Qing luan',
@@ -14,8 +14,8 @@ setup(name='x-mroy-1050',
     install_requires=['termcolor'],
     entry_points={
         'console_scripts': [
-            'x-sstest=shadowsocks_extentsion.test_route:main',
-            'x-sspatch=shadowsocks_extentsion.sspatch:main',
+            'x-sstest=shadowsocks_extension.test_route:main',
+            'x-sspatch=shadowsocks_extension.sspatch:main',
             ]
     },
 
