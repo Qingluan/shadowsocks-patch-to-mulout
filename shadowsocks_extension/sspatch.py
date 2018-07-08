@@ -20,7 +20,7 @@ def get():
     s = []
     for i in files:
         s += [i] * (l-int(i[0]))
-    with open(os.path.join(SHADOWSOCKS_PATH,random.choice(s)),'rb') as fp:
+    with open(os.path.join(SHADOWSOCKS_PATH,random.choice(s)),'r') as fp:
         r = json.load(fp)
         if sys.version[0] == '2':
             d = dict()
