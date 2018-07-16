@@ -22,7 +22,7 @@ if not os.path.exists(SHADOWSOCKS_PATH):
 def read_all_route(R):
     for r, ds, fs in os.walk(R):
         for f in fs:
-            if f.endswith("json"):
+            if "json" in f:
                 with open(os.path.join(r, f)) as fp:
                     con = json.load(fp)
                     
