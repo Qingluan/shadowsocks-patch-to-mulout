@@ -2,9 +2,13 @@ import json, os, time, sys,  atexit, signal
 from asynctools.servers import TcpTests
 from termcolor import colored
 import random
+import requests
 import logging
+from qlib.data import dbobj, Cache
+import argparse
 
 LOG_LEVEL=logging.ERROR
+DB_PATH = os.path.expanduser("~/.config/seed/cache.db")
 
 def loger(level=LOG_LEVEL):
     logging.basicConfig(level=level)
@@ -12,6 +16,10 @@ def loger(level=LOG_LEVEL):
 
 
 log = loger()
+
+def get_db():
+    return Cache(DB_PATH)
+
 
 SHADOWSOCKS_PATH = "/etc/shadowsocks"
 SOURCE_SHADOWSOCKS_PATH = os.path.join(os.getenv("HOME"), ".config/seed/shadowsocks")
@@ -56,6 +64,79 @@ def get():
             return {i.encode("utf-8") : r[i].encode("utf-8")}
         else:
             return r
+
+class Host(dbobj):
+    pass
+
+class Token(dbobj):
+    pass
+
+def sync(token=None):
+    db = get_db()
+    if not token:
+        _ = db.query_one(Token)
+
+        if _:
+            token = _.token
+        else:
+            token = input("Token initialization:")
+            t = Token(token=token)
+            t.save(db)
+
+    if not token:
+        print('no token')
+        return
+    res = requests.get('https://api.vultr.com/v1/server/list', headers={
+        'API-Key': token,
+        }).json().values()
+    
+    ss = {}
+    old_hosts = db.query(Host)
+    [db.delete(i) for i in old_hosts]
+    # old_hosts_hosts = {i.host:i for i in old_hosts}
+    for i in res:
+        s = Host(host=i['main_ip'],
+            passwd=i['default_password'],
+            port='22',
+            user='root',
+            location=i['location'],
+            os=i['os'],
+            disk=i['disk'],
+            vcpu_count=i['vcpu_count'],
+            cost_per_month=i['pending_charges']
+        )
+        ss[s.host] = s
+        print(colored('sync : %s : %s' % (s.host, s.location), 'green'))
+    # no = set(old_hosts_hosts.keys()) - set(ss.keys())
+    # for i in old_hosts_hosts.keys():
+        # db.delete(old_hosts_hosts[i])
+        # print(colored('delete: %s' % i, 'red'))
+    db.save_all(*list(ss.values()))
+
+    Dir  = os.path.join(os.path.dirname(DB_PATH), "shadowsocks")
+    if not os.path.exists(Dir):
+        os.mkdir(Dir)
+    for s in ss.values():
+        fname = s.location+".json"
+        fs = os.listdir(Dir)
+        if fname in fs:
+            c = 1
+            while 1:
+                
+                if (fname + str(c)) not in fs:
+                    fname += str(c)
+                    break
+                else:
+                    c += 1
+        print(colored(fname + " -> local", 'blue'))
+        with open(os.path.join(Dir, fname),'w') as fp:
+            json.dump({
+                "server":s.host,
+                'server_port':13003,
+                'password':'thefoolish3',
+                'method':'aes-256-cfb',
+                'local_port':'1080'
+                }, fp)
 
 
 
@@ -218,19 +299,29 @@ class AutoTestShadowsocks(Daemon):
 
 
 def main():
-    interval = 60
-    if len(sys.argv) > 2:
-        interval = int(sys.argv[2])
-        if interval < 30:
-            print("[!] interval must set > 30 , you set : ", colored(interval,'yellow')) 
-    d = AutoTestShadowsocks('/tmp/shadowsocks_test.pid', interval=interval)
-    if sys.argv[1] == 'start':
-        d.start()
-    elif sys.argv[1] == 'stop':
-        d.stop()
-    elif sys.argv[1] == 'restart':
-        d.restart()
-    log.info("Start service async socket")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u','--update', action='store_true',default=False,help='update hosts')
+    parser.add_argument('-s','--server', default=None, help='start server / stop/ restart')
+    parser.add_argument('-i','--interval', default=60, type=int, help="set server's interval.")
+
+    args = parser.parse_args()
+    interval = args.interval
+
+    if interval < 30:
+        print("[!] interval must set > 30 , you set : ", colored(interval,'yellow')) 
+        return
+    if args.update:
+        sync()
+
+    if args.server:
+        d = AutoTestShadowsocks('/tmp/shadowsocks_test.pid', interval=interval)
+        if args.server == 'start':
+            d.start()
+        elif args.server == 'stop':
+            d.stop()
+        elif args.server == 'restart':
+            d.restart()
+        log.info("Start service async socket")
 
 
 if __name__ == '__main__':

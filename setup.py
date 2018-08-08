@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='x-mroy-1050',
-    version='0.1.4',
+    version='0.1.5',
     description=' x-mroy',
     url='https://github.com/Qingluan/.git',
     author='Qing luan',
@@ -11,7 +11,7 @@ setup(name='x-mroy-1050',
     include_package_data=True,
     zip_safe=False,
     packages=find_packages(),
-    install_requires=['termcolor'],
+    install_requires=['termcolor', 'mroylib-min','x-mroy-1045'],
     entry_points={
         'console_scripts': [
             'x-sstest=shadowsocks_extension.test_route:main',
