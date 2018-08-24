@@ -161,13 +161,14 @@ def backup():
 
 
 def main():
+    path = sys.argv[2]
     if sys.argv[1] == 'patch':
-        files = os.popen('find / -name "*tcprelay.py" -type f ').read().split("\n")
+        files = os.popen('find %s -name "*tcprelay.py" -type f ' % path).read().split("\n")
         patch(files)
         patch_config(files)
     elif sys.argv[1] == 'backup':
         backup()
     else:
-        print(colored("[!]", 'red') , 'only support backup/patch')
+        print(colored("[!]", 'red') , 'only support backup/patch  [path# only used in patch]')
 
 
