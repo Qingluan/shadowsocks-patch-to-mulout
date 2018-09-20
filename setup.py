@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='x-mroy-1050',
-    version='0.1.8',
+    version='0.1.9',
     description=' x-mroy',
     url='https://github.com/Qingluan/.git',
     author='Qing luan',

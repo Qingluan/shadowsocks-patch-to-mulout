@@ -81,7 +81,7 @@ class Host(dbobj):
 class Token(dbobj):
     pass
 
-def sync(token=None):
+def sync(token=None, my_ip=None):
     db = get_db()
     if not token:
         _ = db.query_one(Token)
@@ -105,6 +105,9 @@ def sync(token=None):
     [db.delete(i) for i in old_hosts]
     # old_hosts_hosts = {i.host:i for i in old_hosts}
     for i in res:
+        if my_ip:
+            if i['main_ip'] == my_ip:
+                continue
         s = Host(host=i['main_ip'],
             passwd=i['default_password'],
             port='22',
