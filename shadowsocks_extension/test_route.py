@@ -8,7 +8,17 @@ from qlib.data import dbobj, Cache
 import argparse
 
 LOG_LEVEL=logging.ERROR
+BASE_ROOT = os.path.expanduser("~/.config/")
+ROOT = os.path.expanduser("~/.config/seed")
+if not os.path.exists(BASE_ROOT):
+    os.mkdir(BASE_ROOT)
+
+if not os.path.exists(ROOT):
+    os.mkdir(ROOT)
+
 DB_PATH = os.path.expanduser("~/.config/seed/cache.db")
+
+
 
 def loger(level=LOG_LEVEL):
     logging.basicConfig(level=level)
@@ -296,7 +306,44 @@ class AutoTestShadowsocks(Daemon):
             test_one_time()
             time.sleep(self.interval)
 
+def auth_and_settoken(token):
+    if len(token) == 36:
+        try:
+            res = requests.get("https://api.vultr.com/v1/account/info", headers={'API-Key': token}).json()
+        
+            c = Cache(DB_PATH)
+            try:
+                c.drop(Token)
+            except Exception:
+                pass
+            tt = Token(token=token)
+            tt.save(c)
+            print(colored("[+]", 'green'), 'token -> ', token)
+        except Exception as e:
+            print(colored("[+]", 'red'), e)
+    else:
+        print(colored("[+]", 'red'), "len is error: ", token)
 
+def sync_main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u','--update', action='store_true',default=False,help='update hosts')
+    parser.add_argument('-s','--server', default=None, help='start server / stop/ restart')
+    parser.add_argument('-t','--token', default=None, help='set token.. ')
+    parser.add_argument('-i','--interval', default=60, type=int, help="set server's interval.")
+
+    args = parser.parse_args()
+    interval = args.interval
+    
+    if args.token:
+        auth_and_settoken(args.token)
+
+    if args.update:
+        sync(args.token)
+
+    if args.server == 'start':
+        while 1:
+            test_one_time()
+            time.sleep(interval)
 
 def main():
     parser = argparse.ArgumentParser()

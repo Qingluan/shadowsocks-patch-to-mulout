@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='x-mroy-1050',
-    version='0.1.6',
+    version='0.1.7',
     description=' x-mroy',
     url='https://github.com/Qingluan/.git',
     author='Qing luan',
@@ -15,6 +15,7 @@ setup(name='x-mroy-1050',
     entry_points={
         'console_scripts': [
             'x-sstest=shadowsocks_extension.test_route:main',
+            'x-ea-test=shadowsocks_extension.test_route:sync_main',
             'x-sspatch=shadowsocks_extension.sspatch:main',
             ]
     },
