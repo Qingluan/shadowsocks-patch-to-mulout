@@ -10,6 +10,12 @@ import argparse
 LOG_LEVEL=logging.ERROR
 BASE_ROOT = os.path.expanduser("~/.config/")
 ROOT = os.path.expanduser("~/.config/seed")
+SOURCE_SHADOWSOCKS_PATH = os.path.expanduser("~/.config/seed/shadowsocks")
+SHADOWSOCKS_PATH = "/etc/shadowsocks"
+
+if not os.path.exists(SHADOWSOCKS_PATH):
+    os.mkdir(SHADOWSOCKS_PATH)
+
 if not os.path.exists(BASE_ROOT):
     os.mkdir(BASE_ROOT)
 
@@ -30,12 +36,6 @@ log = loger()
 def get_db():
     return Cache(DB_PATH)
 
-
-SHADOWSOCKS_PATH = "/etc/shadowsocks"
-SOURCE_SHADOWSOCKS_PATH = os.path.join(os.getenv("HOME"), ".config/seed/shadowsocks")
-
-if not os.path.exists(SHADOWSOCKS_PATH):
-    os.mkdir(SHADOWSOCKS_PATH)
 
 def read_all_route(R):
     for r, ds, fs in os.walk(R):
